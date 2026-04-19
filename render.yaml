@@ -55,7 +55,7 @@ services:
         fromService:
           type: web
           name: fitcart-ai
-          property: url
+          property: hostport
       - key: FITCART_WEB_ALLOWED_ORIGINS
         value: https://fitcart-web.onrender.com,http://localhost:5173
       - key: SPRING_PROFILES_ACTIVE
@@ -80,7 +80,7 @@ services:
         fromService:
           type: web
           name: fitcart-api
-          property: url
+          property: hostport
       - key: REDIS_URL
         fromService:
           type: keyvalue

@@ -12,7 +12,7 @@ public class AiServiceProperties {
     private Duration readTimeout = Duration.ofSeconds(5);
 
     public String getBaseUrl() {
-        return baseUrl;
+        return normalizeBaseUrl(baseUrl);
     }
 
     public void setBaseUrl(String baseUrl) {
@@ -33,5 +33,16 @@ public class AiServiceProperties {
 
     public void setReadTimeout(Duration readTimeout) {
         this.readTimeout = readTimeout;
+    }
+
+    private String normalizeBaseUrl(String candidate) {
+        if (candidate == null || candidate.isBlank()) {
+            return "http://localhost:8000";
+        }
+        String trimmed = candidate.trim();
+        if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+            return trimmed;
+        }
+        return "http://" + trimmed;
     }
 }

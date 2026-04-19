@@ -27,6 +27,13 @@ class Settings(BaseSettings):
         case_sensitive=False,
     )
 
+    @property
+    def normalized_spring_api_base_url(self) -> str:
+        candidate = self.spring_api_base_url.strip()
+        if candidate.startswith(("http://", "https://")):
+            return candidate
+        return f"http://{candidate}"
+
 
 @lru_cache
 def get_settings() -> Settings:
