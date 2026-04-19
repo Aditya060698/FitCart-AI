@@ -5,6 +5,8 @@ Thumbs.db
 .vscode/
 *.swp
 *.swo
+*.tmp
+*.temp
 
 # Env files
 .env
@@ -23,31 +25,49 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Frontend
-apps/web/node_modules/
-apps/web/dist/
-apps/web/build/
-apps/web/.cache/
-apps/web/.vite/
+# Node / frontend
+node_modules/
+**/node_modules/
+dist/
+build/
+.cache/
+.vite/
+.parcel-cache/
+.next/
+.nuxt/
+coverage/
 
-# Backend
-apps/api/target/
-apps/api/.mvn/wrapper/maven-wrapper.jar
+# Java / backend
+target/
+**/target/
+out/
+*.class
+*.jar
+*.war
+*.ear
+!.mvn/wrapper/maven-wrapper.jar
 apps/api/uploads/
 
 # Python
-apps/ai/.venv/
-apps/ai/venv/
-apps/ai/.pytest_cache/
-apps/ai/.mypy_cache/
-apps/ai/.ruff_cache/
-apps/ai/.coverage
-apps/ai/htmlcov/
-apps/ai/data/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+.tox/
+.nox/
+.coverage
+coverage.xml
+htmlcov/
+data/
 __pycache__/
+**/__pycache__/
 *.pyc
 *.pyo
 *.pyd
+*.py,cover
 
 # Docs/generated artifacts
 docs/.obsidian/
@@ -56,3 +76,4 @@ docs/.obsidian/
 infra/.env
 postgres_data/
 redis_data/
+uploads/

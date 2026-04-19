@@ -75,7 +75,6 @@ services:
     rootDir: apps/ai
     dockerfilePath: ./Dockerfile
     dockerContext: .
-    healthCheckPath: /health
     autoDeployTrigger: commit
     disk:
       name: fitcart-ai-data

@@ -2,7 +2,7 @@ spring:
   application:
     name: fitcart-api
   datasource:
-    url: ${DB_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:fitcart}}
+    url: ${DB_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5460}/${DB_NAME:fitcart}}
     username: ${DB_USERNAME:fitcart}
     password: ${DB_PASSWORD:fitcart}
   jpa:
