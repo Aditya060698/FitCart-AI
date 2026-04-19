@@ -18,17 +18,13 @@ services:
   - type: web
     runtime: docker
     name: fitcart-api
-    plan: starter
+    plan: free
     region: oregon
     rootDir: apps/api
     dockerfilePath: ./Dockerfile
     dockerContext: .
     healthCheckPath: /actuator/health
     autoDeployTrigger: commit
-    disk:
-      name: fitcart-api-documents
-      mountPath: /var/data/fitcart-api
-      sizeGB: 1
     envVars:
       - key: DB_HOST
         fromDatabase:
@@ -57,29 +53,24 @@ services:
           property: connectionString
       - key: FITCART_AI_BASE_URL
         fromService:
-          type: pserv
+          type: web
           name: fitcart-ai
-          property: hostport
+          property: url
       - key: FITCART_WEB_ALLOWED_ORIGINS
         value: https://fitcart-web.onrender.com,http://localhost:5173
-      - key: DOCUMENT_STORAGE_ROOT
-        value: /var/data/fitcart-api/documents
       - key: SPRING_PROFILES_ACTIVE
         value: prod
 
-  - type: pserv
+  - type: web
     runtime: docker
     name: fitcart-ai
-    plan: starter
+    plan: free
     region: oregon
     rootDir: apps/ai
     dockerfilePath: ./Dockerfile
     dockerContext: .
+    healthCheckPath: /health
     autoDeployTrigger: commit
-    disk:
-      name: fitcart-ai-data
-      mountPath: /var/data/fitcart-ai
-      sizeGB: 1
     envVars:
       - key: APP_ENV
         value: production
@@ -89,20 +80,18 @@ services:
         fromService:
           type: web
           name: fitcart-api
-          property: hostport
+          property: url
       - key: REDIS_URL
         fromService:
           type: keyvalue
           name: fitcart-redis
           property: connectionString
-      - key: VECTOR_STORE_FILE_PATH
-        value: /var/data/fitcart-ai/vector_store.json
       - key: OPENAI_API_KEY
         sync: false
 
   - type: keyvalue
     name: fitcart-redis
-    plan: starter
+    plan: free
     region: oregon
     maxmemoryPolicy: allkeys-lru
     ipAllowList: []

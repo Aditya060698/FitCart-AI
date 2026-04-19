@@ -4,23 +4,23 @@ This project can be deployed to Render with a single Blueprint file at the repos
 
 ## Deployment Goal
 
-The Render setup uses a production-style split:
+The current Blueprint is optimized for an all-free Render deployment:
 
 - `fitcart-web`: public static React frontend
 - `fitcart-api`: public Spring Boot API
-- `fitcart-ai`: private FastAPI AI service
+- `fitcart-ai`: public FastAPI AI service
 - `fitcart-postgres`: managed PostgreSQL
 - `fitcart-redis`: managed Redis-compatible Key Value
 
-This keeps the browser-facing surface small while preserving internal service-to-service networking for AI orchestration.
+This is not the cleanest production security posture, but it is the only way to keep every Render resource on a free tier under Render's current service rules.
 
 ## Why this shape works well on Render
 
-Render Blueprints let one repository create multiple linked resources in one deploy. FitCart AI benefits from that because:
+Render Blueprints let one repository create multiple linked resources in one deploy. FitCart AI still benefits from that on free tiers because:
 
 - the React app is best served as a static site
 - the Spring Boot API owns public business APIs, persistence, and orchestration
-- the FastAPI service stays focused on AI workflows and can remain private
+- the FastAPI service stays focused on AI workflows, but it must be a public web service instead of a private service
 - Postgres and Redis are provisioned as managed infrastructure instead of self-hosted containers
 
 ## Resource Design
@@ -38,16 +38,15 @@ Render Blueprints let one repository create multiple linked resources in one dep
 - exposed publicly for frontend access
 - receives database credentials from Render Postgres using discrete env vars
 - receives `REDIS_URL` from Render Key Value
-- receives the AI private network address from the FastAPI service
-- mounts a persistent disk for uploaded document files
+- receives the public AI service URL from the FastAPI service
+- uses ephemeral local storage only, which is acceptable for free-tier demos but not persistent uploads
 
 ### `fitcart-ai`
 
 - built from `apps/ai/Dockerfile`
-- runs as a private service, not directly exposed to browsers
-- receives the Spring Boot API private address for internal callbacks and data fetches
+- runs as a public web service because private services do not support free instances
+- receives the Spring Boot API public URL for internal callbacks and data fetches
 - receives `REDIS_URL` for cache access
-- mounts a persistent disk for vector-store file persistence
 - expects `OPENAI_API_KEY` to be provided during Blueprint creation
 
 ### `fitcart-postgres`
@@ -84,14 +83,14 @@ Render Key Value exposes a single internal connection string. The API now suppor
 
 The frontend and API run on different Render domains, so the API needs explicit CORS configuration. The Spring Boot app now reads allowed origins from `FITCART_WEB_ALLOWED_ORIGINS`.
 
-### Persistent disks
+### Ephemeral filesystem
 
-Render services are otherwise ephemeral. FitCart AI currently writes:
+Free Render web services do not support persistent disks. That means:
 
-- uploaded document files on the API side
-- file-backed vector data on the AI side
+- uploaded files stored on the API filesystem are lost on restart, redeploy, or spin-down
+- the AI service's local file-backed vector store is also lost on restart, redeploy, or spin-down
 
-Those paths are mounted to persistent disks in the Blueprint.
+For a free demo deployment, that is acceptable as long as you treat uploads and AI-ingested local files as temporary.
 
 ## One-Click Deployment Steps
 
@@ -108,11 +107,22 @@ After the initial deploy:
 - confirm `fitcart-api` health at `/actuator/health`
 - confirm `fitcart-ai` health from the Render dashboard private-service health status
 
-## Cost and plan note
+## Free-tier constraints
 
-The static frontend can stay free. The private AI service cannot use Render's free web-service plan, so the current Blueprint uses `starter` for the API, AI service, and Key Value instance.
+This all-free deployment works because Render currently allows free:
 
-If you want the lowest-cost deployment instead of the cleaner architecture, the main compromise is to convert `fitcart-ai` from `type: pserv` to a public `type: web` service.
+- static sites
+- web services
+- one Postgres database per workspace
+- one Key Value instance per workspace
+
+Important limitations from Render's current docs:
+
+- private services do not support free instances
+- free web services spin down after inactivity
+- free web services do not support persistent disks
+- free Postgres expires 30 days after creation
+- free Key Value is in-memory only and loses data on restart
 
 ## Known production follow-ups
 
@@ -123,3 +133,4 @@ This Blueprint is strong for a portfolio-grade full-stack deployment, but produc
 - service-to-service auth between Spring Boot and FastAPI
 - external object storage for documents instead of local disk
 - pgvector-backed embeddings instead of file-backed vectors
+- moving the AI service back to a private service on a paid plan
