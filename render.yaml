@@ -1,0 +1,118 @@
+services:
+  - type: web
+    runtime: static
+    name: fitcart-web
+    rootDir: apps/web
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://fitcart-api.onrender.com
+      - key: VITE_AI_BASE_URL
+        value: https://fitcart-api.onrender.com
+
+  - type: web
+    runtime: docker
+    name: fitcart-api
+    plan: starter
+    region: oregon
+    rootDir: apps/api
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /actuator/health
+    autoDeployTrigger: commit
+    disk:
+      name: fitcart-api-documents
+      mountPath: /var/data/fitcart-api
+      sizeGB: 1
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: fitcart-postgres
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: fitcart-postgres
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: fitcart-postgres
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: fitcart-postgres
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: fitcart-postgres
+          property: password
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: fitcart-redis
+          property: connectionString
+      - key: FITCART_AI_BASE_URL
+        fromService:
+          type: pserv
+          name: fitcart-ai
+          property: hostport
+      - key: FITCART_WEB_ALLOWED_ORIGINS
+        value: https://fitcart-web.onrender.com,http://localhost:5173
+      - key: DOCUMENT_STORAGE_ROOT
+        value: /var/data/fitcart-api/documents
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+
+  - type: pserv
+    runtime: docker
+    name: fitcart-ai
+    plan: starter
+    region: oregon
+    rootDir: apps/ai
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeployTrigger: commit
+    disk:
+      name: fitcart-ai-data
+      mountPath: /var/data/fitcart-ai
+      sizeGB: 1
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: SPRING_API_BASE_URL
+        fromService:
+          type: web
+          name: fitcart-api
+          property: hostport
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: fitcart-redis
+          property: connectionString
+      - key: VECTOR_STORE_FILE_PATH
+        value: /var/data/fitcart-ai/vector_store.json
+      - key: OPENAI_API_KEY
+        sync: false
+
+  - type: keyvalue
+    name: fitcart-redis
+    plan: starter
+    region: oregon
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList: []
+
+databases:
+  - name: fitcart-postgres
+    plan: free
+    region: oregon
+    postgresMajorVersion: "18"
+    databaseName: fitcart
+    user: fitcart
+    ipAllowList: []

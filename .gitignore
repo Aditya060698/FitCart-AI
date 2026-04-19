@@ -1,0 +1,58 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Env files
+.env
+.env.local
+.env.*.local
+apps/api/.env
+apps/ai/.env
+apps/web/.env
+apps/web/.env.local
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Frontend
+apps/web/node_modules/
+apps/web/dist/
+apps/web/build/
+apps/web/.cache/
+apps/web/.vite/
+
+# Backend
+apps/api/target/
+apps/api/.mvn/wrapper/maven-wrapper.jar
+apps/api/uploads/
+
+# Python
+apps/ai/.venv/
+apps/ai/venv/
+apps/ai/.pytest_cache/
+apps/ai/.mypy_cache/
+apps/ai/.ruff_cache/
+apps/ai/.coverage
+apps/ai/htmlcov/
+apps/ai/data/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Docs/generated artifacts
+docs/.obsidian/
+
+# Local infrastructure and runtime artifacts
+infra/.env
+postgres_data/
+redis_data/

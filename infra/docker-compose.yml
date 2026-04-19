@@ -1,0 +1,112 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: fitcart-postgres
+    environment:
+      POSTGRES_DB: fitcart
+      POSTGRES_USER: fitcart
+      POSTGRES_PASSWORD: fitcart
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - fitcart-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fitcart -d fitcart"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7
+    container_name: fitcart-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - fitcart-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ../apps/api
+      dockerfile: Dockerfile
+    container_name: fitcart-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/fitcart
+      DB_USERNAME: fitcart
+      DB_PASSWORD: fitcart
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      AI_SERVICE_BASE_URL: http://ai:8000
+    ports:
+      - "8080:8080"
+    networks:
+      - fitcart-network
+
+  ai:
+    build:
+      context: ../apps/ai
+      dockerfile: Dockerfile
+    container_name: fitcart-ai
+    depends_on:
+      api:
+        condition: service_started
+    environment:
+      APP_NAME: FitCart AI Service
+      APP_ENV: docker
+      APP_HOST: 0.0.0.0
+      APP_PORT: 8000
+      APP_DEBUG: "true"
+      API_PREFIX: /api/v1
+      SPRING_API_BASE_URL: http://api:8080
+      VECTOR_STORE: pgvector
+      OPENAI_API_KEY: replace_me
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../apps/ai:/app
+    networks:
+      - fitcart-network
+
+  web:
+    build:
+      context: ../apps/web
+      dockerfile: Dockerfile
+    container_name: fitcart-web
+    depends_on:
+      api:
+        condition: service_started
+      ai:
+        condition: service_started
+    environment:
+      VITE_API_BASE_URL: http://localhost:8080
+      VITE_AI_BASE_URL: http://localhost:8000
+    ports:
+      - "5173:5173"
+    volumes:
+      - ../apps/web:/app
+      - /app/node_modules
+    networks:
+      - fitcart-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  fitcart-network:
+    driver: bridge

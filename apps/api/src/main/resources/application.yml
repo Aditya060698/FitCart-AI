@@ -1,0 +1,56 @@
+spring:
+  application:
+    name: fitcart-api
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:fitcart}}
+    username: ${DB_USERNAME:fitcart}
+    password: ${DB_PASSWORD:fitcart}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: false
+  data:
+    redis:
+      url: ${REDIS_URL:redis://localhost:6379/0}
+
+server:
+  port: ${PORT:8080}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+fitcart:
+  ai:
+    base-url: ${FITCART_AI_BASE_URL:http://localhost:8000}
+    connect-timeout: ${FITCART_AI_CONNECT_TIMEOUT:2s}
+    read-timeout: ${FITCART_AI_READ_TIMEOUT:5s}
+  web:
+    allowed-origins: ${FITCART_WEB_ALLOWED_ORIGINS:http://localhost:5173}
+  cache:
+    enabled: true
+    redis-enabled: ${FITCART_CACHE_REDIS_ENABLED:true}
+    advisor-top-products-ttl: ${FITCART_CACHE_ADVISOR_TOP_PRODUCTS_TTL:10m}
+    autocomplete-ttl: ${FITCART_CACHE_AUTOCOMPLETE_TTL:15m}
+  documents:
+    storage-root: ${DOCUMENT_STORAGE_ROOT:uploads/documents}
+
+# Keep environment-specific overrides in:
+# - application-local.yml
+# - application-dev.yml
+# - application-prod.yml
