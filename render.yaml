@@ -13,7 +13,7 @@ services:
       - key: VITE_API_BASE_URL
         value: https://fitcart-api.onrender.com
       - key: VITE_AI_BASE_URL
-        value: https://fitcart-api.onrender.com
+        value: https://fitcart-ai.onrender.com
 
   - type: web
     runtime: docker
