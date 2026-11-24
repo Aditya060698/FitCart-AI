@@ -12,6 +12,7 @@ class Settings(BaseSettings):
 
     api_prefix: str = "/api/v1"
     spring_api_base_url: str = "http://localhost:8080"
+    web_allowed_origins: str = "http://localhost:5173"
 
     openai_api_key: str = "replace_me"
     vector_store: str = "pgvector"
@@ -33,6 +34,14 @@ class Settings(BaseSettings):
         if candidate.startswith(("http://", "https://")):
             return candidate
         return f"http://{candidate}"
+
+    @property
+    def normalized_web_allowed_origins(self) -> list[str]:
+        return [
+            origin.strip()
+            for origin in self.web_allowed_origins.split(",")
+            if origin.strip()
+        ]
 
 
 @lru_cache
